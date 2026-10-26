@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+}
+
+/*
+ * Midday-inspired monochrome theme (shared with sv.cafe): flat surfaces,
+ * hairline borders, zero border radius, warm-tinted light cards,
+ * near-black dark mode.
+ */
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 7%);
+  --card: hsl(45 18% 96%);
+  --card-foreground: hsl(240 10% 3.9%);
+  --primary: hsl(240 5.9% 10%);
+  --primary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(40 11% 89%);
+  --muted: hsl(40 10% 94%);
+  --muted-foreground: hsl(0 0% 38%);
+  --accent: hsl(40 10% 94%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --border: hsl(45 5% 85%);
+  --input: hsl(45 5% 85%);
+  --ring: hsl(240 5.9% 10%);
+}
+
+.dark {
+  --background: hsl(0 0% 5%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(0 0% 7%);
+  --card-foreground: hsl(0 0% 98%);
+  --primary: hsl(0 0% 98%);
+  --primary-foreground: hsl(0 0% 9%);
+  --secondary: hsl(0 0% 11%);
+  --muted: hsl(0 0% 11%);
+  --muted-foreground: hsl(0 0% 56%);
+  --accent: hsl(0 0% 11%);
+  --destructive: hsl(359 100% 61%);
+  --border: hsl(0 0% 11%);
+  --input: hsl(0 0% 14%);
+  --ring: hsl(240 4.9% 83.9%);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+  }
+  ::selection {
+    background: var(--foreground);
+    color: var(--background);
+  }
+}

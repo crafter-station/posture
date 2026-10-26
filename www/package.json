@@ -1,0 +1,26 @@
+{
+  "name": "posture-www",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "next": "^16.2.10",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "postcss": "^8.5.0",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.7.0"
+  }
+}

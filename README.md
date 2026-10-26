@@ -1,5 +1,7 @@
 # posture
 
+[posture.crafter.run](https://posture.crafter.run)
+
 Your AirPods already know when you slouch. **posture** reads their head tracking sensor and nudges you when your head drops for too long. A menu bar app with a live figure and stats, plus a CLI built for scripts and agents.
 
 ![The menu bar figure bends with your head and turns orange while you slouch](docs/menu-bar-figure.png)
@@ -84,10 +86,17 @@ Sources/PostureKit   sensor, tilt math, learned axes, tracker, storage
 Sources/posture      CLI
 Sources/PostureBar   menu bar app, setup flow, 3D head, stats panel
 scripts/             bundle.sh builds Posture.app, install.sh does everything
+www/                 landing page at posture.crafter.run (Next.js)
 ```
 
 Builds are ad hoc signed, so macOS asks for motion access again after each rebuild.
 
 ## License
 
-MIT, by [Crafter Station](https://github.com/crafter-station).
+MIT, released with [Crafter Station](https://github.com/crafter-station).
+
+## Author
+
+Built by [Cristian Correa](https://www.cris.fast), Founder of Croma.
+
+[cris.fast](https://www.cris.fast) · [GitHub](https://github.com/camilocbarrera) · [LinkedIn](https://www.linkedin.com/in/cristiancamilocorrea/) · [X](https://x.com/camilocbarrera)
