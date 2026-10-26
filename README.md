@@ -7,6 +7,15 @@ swift build -c release
 ln -sf "$PWD/.build/release/posture" ~/.local/bin/posture
 ```
 
+## Menu bar app
+
+```sh
+scripts/bundle.sh        # builds ~/Applications/Posture.app
+posture bar              # opens it
+```
+
+A seated figure in the menu bar bends with your head in real time and turns orange while you slouch. Click it for today's score, time slouched, nudges, best upright streak, an hour by hour chart, the week, and settings (sensitivity, nudge delay, sound, angle in the menu bar, open at login). When the app is running, `posture watch` is view only so the two never double count.
+
 ## Use
 
 ```sh
@@ -16,6 +25,7 @@ posture now              # one reading, exit 0 upright, 1 slouching
 posture stats --days 7   # daily score, slouch time, nudges
 posture config --threshold 12 --grace 30
 posture doctor           # AirPods, permission, sensor, calibration
+posture bar              # open the menu bar app
 ```
 
 Every command takes `--json`. `posture watch --json` streams JSONL (`sample`, `nudge`, `disconnected`, `summary`), so agents and scripts can follow along.

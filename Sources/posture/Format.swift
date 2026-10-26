@@ -1,4 +1,5 @@
 import Foundation
+import PostureKit
 
 enum Format {
     static let tty = isatty(STDOUT_FILENO) == 1

@@ -1,4 +1,5 @@
 import Foundation
+import PostureKit
 
 enum Nudge {
     static func slouching(for seconds: Double, quiet: Bool) {

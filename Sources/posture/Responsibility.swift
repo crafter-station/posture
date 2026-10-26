@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import PostureKit
 
 enum Responsibility {
     private static let marker = "POSTURE_DISCLAIMED"

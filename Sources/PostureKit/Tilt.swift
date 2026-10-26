@@ -1,12 +1,12 @@
 import CoreMotion
 import Foundation
 
-struct Tilt: Codable, Equatable {
-    var x: Double
-    var y: Double
-    var z: Double
+public struct Tilt: Codable, Equatable, Sendable {
+    public var x: Double
+    public var y: Double
+    public var z: Double
 
-    init(x: Double, y: Double, z: Double) {
+    public init(x: Double, y: Double, z: Double) {
         self.x = x
         self.y = y
         self.z = z
@@ -23,7 +23,7 @@ struct Tilt: Codable, Equatable {
         return l > 0 ? Tilt(x: x / l, y: y / l, z: z / l) : self
     }
 
-    func degrees(from other: Tilt) -> Double {
+    public func degrees(from other: Tilt) -> Double {
         let a = unit, b = other.unit
         let dot = max(-1, min(1, a.x * b.x + a.y * b.y + a.z * b.z))
         return acos(dot) * 180 / .pi
@@ -37,7 +37,7 @@ struct Tilt: Codable, Equatable {
         )
     }
 
-    static func mean(_ samples: [Tilt]) -> Tilt? {
+    public static func mean(_ samples: [Tilt]) -> Tilt? {
         guard !samples.isEmpty else { return nil }
         let n = Double(samples.count)
         return Tilt(

@@ -5,12 +5,20 @@ let package = Package(
     name: "posture",
     platforms: [.macOS(.v14)],
     targets: [
+        .target(
+            name: "PostureKit",
+            linkerSettings: [.linkedFramework("CoreMotion")]
+        ),
         .executableTarget(
             name: "posture",
+            dependencies: ["PostureKit"],
             linkerSettings: [
-                .linkedFramework("CoreMotion"),
                 .unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__info_plist", "-Xlinker", "Info.plist"])
             ]
+        ),
+        .executableTarget(
+            name: "PostureBar",
+            dependencies: ["PostureKit"]
         )
     ]
 )

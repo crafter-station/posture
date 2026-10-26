@@ -1,4 +1,5 @@
 import Foundation
+import PostureKit
 
 let usage = """
 \(Format.bold("posture")) · slouch alerts from your AirPods
@@ -9,10 +10,11 @@ let usage = """
   posture stats [--days 7]    daily score, slouch time and nudges
   posture config              show or change settings
   posture doctor              check AirPods, permission and sensor
+  posture bar                 open the menu bar app
 
 options
   --threshold <deg>   tilt that counts as slouching (default 15)
-  --grace <sec>       how long before a nudge (default 20)
+  --grace <sec>       how long before a nudge (default 30)
   --quiet             notifications without sound
   --json              machine-readable output (JSONL for watch)
 """
@@ -74,6 +76,8 @@ MainActor.assumeIsolated {
         Commands.now(json: json)
     case "stats":
         Commands.stats(json: json, days: Int(args.number("days") ?? 7))
+    case "bar":
+        Commands.open()
     case "doctor":
         Doctor.run(json: json)
     case "config":

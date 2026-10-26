@@ -1,5 +1,6 @@
-import CoreMotion
+import AppKit
 import Foundation
+import PostureKit
 
 @MainActor
 enum Commands {
@@ -11,7 +12,7 @@ enum Commands {
             let degrees = tilt.degrees(from: baseline)
             let slouching = degrees >= settings.threshold
             if json {
-                Format.line(Format.json(["degrees": round(degrees), "slouching": slouching, "threshold": settings.threshold]))
+                Format.line(Format.json(["degrees": degrees.rounded(), "slouching": slouching, "threshold": settings.threshold]))
             } else {
                 let state = slouching ? Format.red("slouching") : Format.green("upright")
                 Format.line("\(Format.meter(degrees, threshold: settings.threshold)) \(Int(degrees.rounded()))°  \(state)")
@@ -22,25 +23,49 @@ enum Commands {
 
     static func stats(json: Bool, days: Int) {
         let history = Store.history()
-        let keys = (0..<days).reversed().map { Store.todayKey(Calendar.current.date(byAdding: .day, value: -$0, to: .now)!) }
+        let keys = Store.recentKeys(days)
         if json {
             let rows = keys.map { key -> [String: Any] in
                 let day = history[key] ?? Day()
-                return ["date": key, "watched": round(day.watched), "slouched": round(day.slouched), "alerts": day.alerts, "score": day.score]
+                let hours = day.hourly.map { ["hour": $0.hour, "watched": $0.slot.watched.rounded(), "slouched": $0.slot.slouched.rounded()] }
+                return ["date": key, "watched": day.watched.rounded(), "slouched": day.slouched.rounded(), "alerts": day.alerts, "score": day.score, "bestStreak": day.bestStreak.rounded(), "hours": hours]
             }
             Format.line(Format.json(["days": rows]))
-            return
+            exit(0)
         }
-        Format.line(Format.dim("date         watched    slouched   nudges  score"))
+        Format.line(Format.dim("date         watched    slouched   streak     nudges  score"))
         for key in keys {
             guard let day = history[key], day.watched > 0 else {
                 Format.line(Format.dim("\(key)   –"))
                 continue
             }
-            let score = day.score >= 80 ? Format.green("\(day.score)") : day.score >= 60 ? Format.yellow("\(day.score)") : Format.red("\(day.score)")
-            Format.line("\(key)   \(pad(Format.duration(day.watched)))\(pad(Format.duration(day.slouched)))\(pad("\(day.alerts)", 8))\(score)")
+            Format.line("\(key)   \(pad(Format.duration(day.watched)))\(pad(Format.duration(day.slouched)))\(pad(Format.duration(day.bestStreak)))\(pad("\(day.alerts)", 8))\(tinted(day.score))")
+        }
+        let hours = history[Store.dayKey()]?.hourly.filter { $0.slot.watched >= 30 } ?? []
+        if !hours.isEmpty {
+            Format.line("")
+            Format.line(Format.dim("today by hour"))
+            for (hour, slot) in hours {
+                let percent = Int((slot.upright * 100).rounded())
+                Format.line("  \(String(format: "%02d", hour)):00  \(Format.meter(100 - Double(percent), threshold: 30, width: 16))  \(tinted(percent))% upright")
+            }
         }
         exit(0)
+    }
+
+    static func open() {
+        let candidates = ["/Applications/Posture.app", NSHomeDirectory() + "/Applications/Posture.app"]
+        guard let app = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
+            fail(NotInstalled())
+        }
+        NSWorkspace.shared.openApplication(at: URL(fileURLWithPath: app), configuration: .init()) { _, error in
+            if let error { fail(error) }
+            exit(0)
+        }
+    }
+
+    private static func tinted(_ score: Int) -> String {
+        score >= 80 ? Format.green("\(score)") : score >= 60 ? Format.yellow("\(score)") : Format.red("\(score)")
     }
 
     static func config(threshold: Double?, grace: Double?, json: Bool) {
@@ -64,6 +89,10 @@ enum Commands {
     }
 }
 
+struct NotInstalled: Error, CustomStringConvertible {
+    var description: String { "Posture.app is not installed. Run `scripts/bundle.sh` in the posture repo." }
+}
+
 struct NotCalibrated: Error, CustomStringConvertible {
     var description: String { "Not calibrated yet. Run `posture calibrate` first." }
 }
@@ -71,19 +100,14 @@ struct NotCalibrated: Error, CustomStringConvertible {
 @MainActor
 enum Doctor {
     static func run(json: Bool) {
-        let manager = CMHeadphoneMotionManager()
-        let access = switch CMHeadphoneMotionManager.authorizationStatus() {
-        case .authorized: "granted"
-        case .denied: "denied"
-        case .restricted: "restricted"
-        default: "not asked yet"
-        }
+        let sensor = HeadSensor()
+        let access = HeadSensor.access
         let settings = Store.settings()
         let session = Session()
         session.tolerant = true
         session.collect(for: 3) { samples in
             let report: [(String, String, Bool)] = [
-                ("motion headphones", manager.isDeviceMotionAvailable ? "supported" : "none found", manager.isDeviceMotionAvailable),
+                ("motion headphones", sensor.isAvailable ? "supported" : "none found", sensor.isAvailable),
                 ("motion access", access, access == "granted"),
                 ("sensor data", samples.isEmpty ? "silent" : "\(samples.count) samples in 3s", !samples.isEmpty),
                 ("calibrated", settings.baseline != nil ? "yes" : "no", settings.baseline != nil),

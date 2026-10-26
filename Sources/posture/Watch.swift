@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import PostureKit
 
 struct WatchOptions {
     var threshold: Double
@@ -9,27 +11,22 @@ struct WatchOptions {
 
 @MainActor
 final class Watch {
+    static let menuBarApp = "run.crafter.posture.bar"
+
     private let options: WatchOptions
-    private let baseline: Tilt
     private let session: Session
-    private var smoothed: Tilt?
-    private var lastSample: Date?
-    private var slouchStart: Date?
-    private var lastAlert: Date?
-    private var lastEmit = Date.distantPast
-    private var lastFlush = Date.now
-    private var dayKey = Store.todayKey()
-    private var day: Day
-    private var sessionWatched = 0.0
-    private var sessionSlouched = 0.0
-    private var connected = true
+    private let tracker: Tracker
+    private var lastRender = Date.distantPast
     private var signals: [DispatchSourceSignal] = []
 
     init(baseline: Tilt, options: WatchOptions, session: Session = Session()) {
-        self.session = session
-        self.baseline = baseline
         self.options = options
-        self.day = Store.history()[dayKey] ?? Day()
+        self.session = session
+        let appTracking = !NSRunningApplication.runningApplications(withBundleIdentifier: Self.menuBarApp).isEmpty
+        tracker = Tracker(baseline: baseline, threshold: options.threshold, grace: options.grace, record: !appTracking)
+        if appTracking, !options.json {
+            Format.line(Format.dim("The menu bar app is already recording, so this session is view only."))
+        }
     }
 
     func start() {
@@ -39,80 +36,40 @@ final class Watch {
         }
         session.listen { [self] event in
             switch event {
-            case .tilt(let tilt): handle(tilt)
-            case .connected: connected = true
+            case .tilt(let tilt): handle(tracker.feed(tilt))
+            case .connected: break
             case .disconnected:
-                connected = false
-                lastSample = nil
-                slouchStart = nil
+                tracker.interrupt()
                 if options.json { emit(["event": "disconnected"]) } else { Format.status(Format.dim("AirPods disconnected, waiting…")) }
             }
         }
     }
 
-    private func handle(_ tilt: Tilt) {
-        let now = Date.now
-        let current = smoothed?.blended(toward: tilt, by: 0.15) ?? tilt
-        smoothed = current
-        let degrees = current.degrees(from: baseline)
-        let slouching = degrees >= options.threshold
-        let dt = lastSample.map { min(1, now.timeIntervalSince($0)) } ?? 0
-        lastSample = now
-
-        rollDayIfNeeded(now)
-        day.watched += dt
-        sessionWatched += dt
-        if slouching {
-            day.slouched += dt
-            sessionSlouched += dt
+    private func handle(_ reading: Tracker.Reading) {
+        switch reading.event {
+        case .nudge(let seconds):
+            Nudge.slouching(for: seconds, quiet: options.quiet)
+            if options.json { emit(["event": "nudge", "degrees": reading.degrees.rounded(), "seconds": seconds.rounded()]) }
+        case .recovered:
+            Nudge.recovered(quiet: options.quiet)
+        case nil:
+            break
         }
-
-        if slouching {
-            let start = slouchStart ?? now
-            slouchStart = start
-            let held = now.timeIntervalSince(start)
-            let due = lastAlert.map { now.timeIntervalSince($0) >= max(60, options.grace * 3) } ?? true
-            if held >= options.grace && due {
-                lastAlert = now
-                day.alerts += 1
-                Nudge.slouching(for: held, quiet: options.quiet)
-                if options.json { emit(["event": "nudge", "degrees": round(degrees), "seconds": round(held)]) }
-            }
-        } else {
-            if lastAlert != nil, slouchStart != nil { Nudge.recovered(quiet: options.quiet) }
-            slouchStart = nil
-            lastAlert = nil
-        }
-
-        render(degrees: degrees, slouching: slouching, now: now)
-        if now.timeIntervalSince(lastFlush) >= 30 { flush() }
+        render(reading)
     }
 
-    private func render(degrees: Double, slouching: Bool, now: Date) {
-        guard now.timeIntervalSince(lastEmit) >= (options.json ? 1 : 0.1) else { return }
-        lastEmit = now
+    private func render(_ reading: Tracker.Reading) {
+        let now = Date.now
+        guard now.timeIntervalSince(lastRender) >= (options.json ? 1 : 0.1) else { return }
+        lastRender = now
         if options.json {
-            emit(["event": "sample", "degrees": round(degrees), "slouching": slouching])
+            emit(["event": "sample", "degrees": reading.degrees.rounded(), "slouching": reading.slouching, "streak": reading.streak.rounded()])
             return
         }
-        let held = slouchStart.map { now.timeIntervalSince($0) } ?? 0
-        let state = slouching ? Format.red("slouching \(Format.duration(held))") : Format.green("upright")
-        let angle = String(format: "%3.0f°", degrees)
-        let score = Day(watched: sessionWatched, slouched: sessionSlouched).score
-        Format.status("\(Format.meter(degrees, threshold: options.threshold)) \(angle)  \(state)  \(Format.dim("· score \(score) · \(Format.duration(sessionWatched))"))")
-    }
-
-    private func rollDayIfNeeded(_ now: Date) {
-        let key = Store.todayKey(now)
-        guard key != dayKey else { return }
-        flush()
-        dayKey = key
-        day = Store.history()[key] ?? Day()
-    }
-
-    private func flush() {
-        Store.record(day, on: dayKey)
-        lastFlush = .now
+        let state = reading.slouching ? Format.red("slouching \(Format.duration(reading.held))") : Format.green("upright")
+        let angle = String(format: "%3.0f°", reading.degrees)
+        let detail = "· score \(tracker.session.score) · streak \(Format.duration(reading.streak)) · \(Format.duration(tracker.session.watched))"
+        Format.status("\(Format.meter(reading.degrees, threshold: options.threshold)) \(angle)  \(state)  \(Format.dim(detail))")
     }
 
     private func emit(_ object: [String: Any]) {
@@ -132,13 +89,13 @@ final class Watch {
     }
 
     private func finish() {
-        flush()
-        let summary = Day(watched: sessionWatched, slouched: sessionSlouched)
+        tracker.flush()
+        let session = tracker.session
         if options.json {
-            emit(["event": "summary", "watched": round(sessionWatched), "slouched": round(sessionSlouched), "score": summary.score])
+            emit(["event": "summary", "watched": session.watched.rounded(), "slouched": session.slouched.rounded(), "score": session.score, "bestStreak": session.bestStreak.rounded()])
         } else {
             Format.status("")
-            Format.line("Session \(Format.duration(sessionWatched)), slouched \(Format.duration(sessionSlouched)), score \(Format.bold("\(summary.score)")).")
+            Format.line("Session \(Format.duration(session.watched)), slouched \(Format.duration(session.slouched)), best streak \(Format.duration(session.bestStreak)), score \(Format.bold("\(session.score)")).")
         }
         exit(0)
     }

@@ -1,4 +1,5 @@
 import Foundation
+import PostureKit
 
 @MainActor
 final class Session {
@@ -26,13 +27,22 @@ final class Session {
 
     func collect(for seconds: Double, then finish: @escaping ([Tilt]) -> Void) {
         var samples: [Tilt] = []
-        listen { event in
-            if case .tilt(let tilt) = event { samples.append(tilt) }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [self] in
+        var started = false
+        var done = false
+        let complete = { [self] in
+            guard !done else { return }
+            done = true
             handler = { _ in }
             finish(samples)
         }
+        listen { event in
+            guard case .tilt(let tilt) = event else { return }
+            samples.append(tilt)
+            guard !started else { return }
+            started = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { complete() }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds + 10) { complete() }
     }
 }
 
