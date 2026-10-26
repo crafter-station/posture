@@ -8,6 +8,7 @@ public final class Tracker {
     }
 
     public struct Reading: Sendable {
+        public let lean: Lean
         public let degrees: Double
         public let slouching: Bool
         public let held: Double
@@ -16,6 +17,7 @@ public final class Tracker {
     }
 
     public var baseline: Tilt
+    public var axes: Axes?
     public var threshold: Double
     public var grace: Double
     public private(set) var day: Day
@@ -30,8 +32,9 @@ public final class Tracker {
     private var lastNudge: Date?
     private var lastFlush = Date.now
 
-    public init(baseline: Tilt, threshold: Double, grace: Double, record: Bool = true) {
+    public init(baseline: Tilt, axes: Axes?, threshold: Double, grace: Double, record: Bool = true) {
         self.baseline = baseline
+        self.axes = axes
         self.threshold = threshold
         self.grace = grace
         self.record = record
@@ -42,8 +45,9 @@ public final class Tracker {
     public func feed(_ tilt: Tilt, at now: Date = .now) -> Reading {
         let current = smoothed?.blended(toward: tilt, by: 0.15) ?? tilt
         smoothed = current
-        let degrees = current.degrees(from: baseline)
-        let slouching = degrees >= threshold
+        let lean = Lean(tilt: current, baseline: baseline, axes: axes)
+        let degrees = lean.drop
+        let slouching = lean.slouching(threshold: threshold)
         let elapsed = lastSample.map { min(1, now.timeIntervalSince($0)) } ?? 0
         lastSample = now
 
@@ -79,7 +83,7 @@ public final class Tracker {
         day.bestStreak = max(day.bestStreak, streak)
         session.bestStreak = max(session.bestStreak, streak)
         if now.timeIntervalSince(lastFlush) >= 30 { flush() }
-        return Reading(degrees: degrees, slouching: slouching, held: held, streak: streak, event: event)
+        return Reading(lean: lean, degrees: degrees, slouching: slouching, held: held, streak: streak, event: event)
     }
 
     public func interrupt() {

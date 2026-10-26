@@ -6,6 +6,8 @@ public struct Settings: Codable, Sendable {
     public var grace = 30.0
     public var sound = true
     public var showAngle = false
+    public var axes: Axes?
+    public var mobility: Mobility?
 
     public init() {}
 
@@ -16,6 +18,8 @@ public struct Settings: Codable, Sendable {
         grace = try c.decodeIfPresent(Double.self, forKey: .grace) ?? grace
         sound = try c.decodeIfPresent(Bool.self, forKey: .sound) ?? sound
         showAngle = try c.decodeIfPresent(Bool.self, forKey: .showAngle) ?? showAngle
+        axes = try c.decodeIfPresent(Axes.self, forKey: .axes)
+        mobility = try c.decodeIfPresent(Mobility.self, forKey: .mobility)
     }
 }
 

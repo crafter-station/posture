@@ -14,7 +14,7 @@ final class Session {
         guard first else { return }
         do {
             try sensor.start { [self] event in
-                if case .tilt = event { heard = true }
+                if case .motion = event { heard = true }
                 self.handler?(event)
             }
         } catch {
@@ -36,8 +36,8 @@ final class Session {
             finish(samples)
         }
         listen { event in
-            guard case .tilt(let tilt) = event else { return }
-            samples.append(tilt)
+            guard case .motion(let motion) = event else { return }
+            samples.append(motion.gravity)
             guard !started else { return }
             started = true
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { complete() }

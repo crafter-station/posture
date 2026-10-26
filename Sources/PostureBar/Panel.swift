@@ -5,6 +5,7 @@ import SwiftUI
 struct Panel: View {
     @Bindable var monitor: Monitor
     @State private var showsSettings = false
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -118,10 +119,13 @@ struct Panel: View {
 
     private var footer: some View {
         HStack(spacing: 8) {
-            Button("Calibrate") { monitor.calibrate() }
-                .disabled(isCalibrating)
+            Button(monitor.needsSetup ? "Set up" : "Calibrate") {
+                openWindow(id: "setup")
+                NSApp.activate()
+            }
+            .disabled(monitor.phase == .setup)
             Button(monitor.phase == .paused ? "Resume" : "Pause") { monitor.togglePause() }
-                .disabled(isCalibrating || monitor.phase == .uncalibrated)
+                .disabled(monitor.phase == .setup || monitor.phase == .uncalibrated)
             Spacer()
             Button {
                 showsSettings.toggle()
@@ -139,13 +143,6 @@ struct Panel: View {
             .help("Quit Posture")
         }
         .controlSize(.small)
-    }
-
-    private var isCalibrating: Bool {
-        switch monitor.phase {
-        case .countdown, .measuring: true
-        default: false
-        }
     }
 
     private var weekAverage: String {

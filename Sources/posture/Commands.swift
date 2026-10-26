@@ -9,13 +9,14 @@ enum Commands {
         guard let baseline = settings.baseline else { fail(NotCalibrated()) }
         Session().collect(for: 1.5) { samples in
             guard let tilt = Tilt.mean(samples) else { fail(SensorError.silent) }
-            let degrees = tilt.degrees(from: baseline)
-            let slouching = degrees >= settings.threshold
+            let lean = Lean(tilt: tilt, baseline: baseline, axes: settings.axes)
+            let slouching = lean.slouching(threshold: settings.threshold)
             if json {
-                Format.line(Format.json(["degrees": degrees.rounded(), "slouching": slouching, "threshold": settings.threshold]))
+                Format.line(Format.json(["degrees": lean.drop.rounded(), "pitch": lean.pitch.rounded(), "roll": lean.roll.rounded(), "direction": lean.direction, "slouching": slouching, "threshold": settings.threshold]))
             } else {
                 let state = slouching ? Format.red("slouching") : Format.green("upright")
-                Format.line("\(Format.meter(degrees, threshold: settings.threshold)) \(Int(degrees.rounded()))°  \(state)")
+                let detail = lean.directional ? String(format: "%.0f° forward · %.0f° %@", lean.pitch, abs(lean.roll), lean.roll >= 0 ? "right" : "left") : String(format: "%.0f°", lean.total)
+                Format.line("\(Format.meter(lean.drop, threshold: settings.threshold)) \(detail)  \(state)")
             }
             exit(slouching ? 1 : 0)
         }
@@ -79,6 +80,10 @@ enum Commands {
             Format.line("threshold   \(Int(settings.threshold))°")
             Format.line("grace       \(Format.duration(settings.grace))")
             Format.line("calibrated  \(settings.baseline != nil ? "yes" : "no")")
+            Format.line("direction   \(settings.axes != nil ? "learned" : "not learned")")
+            if let m = settings.mobility {
+                Format.line("mobility    forward \(Int(m.forward))° · back \(Int(m.back))° · tilt \(Int(m.left))°/\(Int(m.right))° · turn \(Int(m.turnLeft))°/\(Int(m.turnRight))°")
+            }
             Format.line(Format.dim("stored in \(Store.directory.path)"))
         }
         exit(0)
@@ -111,6 +116,7 @@ enum Doctor {
                 ("motion access", access, access == "granted"),
                 ("sensor data", samples.isEmpty ? "silent" : "\(samples.count) samples in 3s", !samples.isEmpty),
                 ("calibrated", settings.baseline != nil ? "yes" : "no", settings.baseline != nil),
+                ("direction", settings.axes != nil ? "learned" : "not yet, run setup in the menu bar app", settings.axes != nil),
             ]
             if json {
                 Format.line(Format.json(Dictionary(uniqueKeysWithValues: report.map { ($0.0, $0.1) })))

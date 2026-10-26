@@ -21,13 +21,14 @@ final class Monitor {
         case waiting
         case paused
         case uncalibrated
-        case countdown(Int)
-        case measuring
+        case setup
         case problem(String)
     }
 
     var phase = Phase.starting
     var degrees = 0
+    var direction = "from upright"
+    var setup: SetupFlow?
     var slouching = false
     var held = 0.0
     var streak = 0.0
@@ -39,14 +40,13 @@ final class Monitor {
 
     @ObservationIgnored private let sensor = HeadSensor()
     @ObservationIgnored private var tracker: Tracker?
-    @ObservationIgnored private var samples: [Tilt] = []
     @ObservationIgnored private var lastHeard: Date?
     @ObservationIgnored private var lastPublish = Date.distantPast
     @ObservationIgnored private var timers: [Timer] = []
 
     init() {
         Notifier.shared.prepare()
-        tracker = settings.baseline.map { Tracker(baseline: $0, threshold: settings.threshold, grace: settings.grace) }
+        tracker = settings.baseline.map { Tracker(baseline: $0, axes: settings.axes, threshold: settings.threshold, grace: settings.grace) }
         today = tracker?.day ?? Store.history()[Store.dayKey()] ?? Day()
         refreshWeek()
         listen()
@@ -60,7 +60,6 @@ final class Monitor {
     var icon: NSImage {
         let tone: Glyph.Tone = switch phase {
         case .live: slouching ? .alert : .calm
-        case .countdown, .measuring: .calm
         default: .idle
         }
         let label = settings.showAngle && phase == .live ? "\(degrees)°" : nil
@@ -74,50 +73,52 @@ final class Monitor {
         case .waiting: "Waiting for AirPods"
         case .paused: "Paused"
         case .uncalibrated: "Calibrate to start"
-        case .countdown(let n): "Sit up straight… \(n)"
-        case .measuring: "Hold still…"
+        case .setup: "Setting up…"
         case .problem: "Can't read your AirPods"
         }
     }
 
     var detail: String {
         switch phase {
-        case .live: "\(degrees)° from upright · streak \(Duration.text(streak))"
+        case .live: "\(degrees)° \(direction) · streak \(Duration.text(streak))"
         case .waiting: "Put both AirPods in your ears"
         case .paused: "Not tracking right now"
         case .uncalibrated: "Sit the way you want to sit, then calibrate"
-        case .countdown, .measuring: "Look at your screen like you normally do"
+        case .setup: "Follow the guide in the setup window"
         case .problem(let message): message
         case .starting: ""
         }
     }
 
-    func calibrate() {
-        if phase == .paused { listen() }
+    var needsSetup: Bool { settings.axes == nil }
+
+    func beginSetup() {
+        guard setup == nil else { return }
+        if phase == .paused || phase == .starting { listen() }
+        tracker?.flush()
+        tracker?.interrupt()
         note = nil
-        Task {
-            for n in [3, 2, 1] {
-                phase = .countdown(n)
-                try? await Task.sleep(for: .seconds(1))
-            }
-            samples = []
-            phase = .measuring
-            try? await Task.sleep(for: .seconds(Calibration.measuring))
-            switch Calibration.evaluate(samples) {
-            case .ready(let baseline):
-                update { $0.baseline = baseline }
-                tracker?.flush()
-                tracker = Tracker(baseline: baseline, threshold: settings.threshold, grace: settings.grace)
-                note = "Calibrated. That's your upright."
-                phase = .waiting
-            case .tooFew:
-                note = "No data from your AirPods. Are they in your ears?"
-                phase = tracker == nil ? .uncalibrated : .waiting
-            case .wobbly(let wobble):
-                note = "You moved \(Int(wobble))°. Hold still and try again."
-                phase = tracker == nil ? .uncalibrated : .waiting
-            }
+        setup = SetupFlow(axes: settings.axes) { [weak self] baseline, axes, mobility in
+            self?.apply(baseline: baseline, axes: axes, mobility: mobility)
         }
+        phase = .setup
+    }
+
+    func endSetup() {
+        setup = nil
+        guard phase == .setup else { return }
+        phase = tracker == nil ? .uncalibrated : .waiting
+    }
+
+    private func apply(baseline: Tilt, axes: Axes?, mobility: Mobility?) {
+        update {
+            $0.baseline = baseline
+            if let axes { $0.axes = axes }
+            if let mobility { $0.mobility = mobility }
+        }
+        tracker?.flush()
+        tracker = Tracker(baseline: baseline, axes: settings.axes, threshold: settings.threshold, grace: settings.grace)
+        note = "Calibrated. That's your upright."
     }
 
     func togglePause() {
@@ -161,7 +162,7 @@ final class Monitor {
     private func listen() {
         do {
             try sensor.start { [weak self] event in self?.handle(event) }
-            phase = tracker == nil ? .uncalibrated : .waiting
+            if setup == nil { phase = tracker == nil ? .uncalibrated : .waiting }
         } catch {
             phase = .problem("\(error)")
         }
@@ -169,15 +170,15 @@ final class Monitor {
 
     private func handle(_ event: SensorEvent) {
         switch event {
-        case .tilt(let tilt):
+        case .motion(let motion):
             lastHeard = .now
+            if let setup { return setup.feed(motion) }
             switch phase {
-            case .measuring: samples.append(tilt)
-            case .countdown, .paused, .uncalibrated, .problem: break
+            case .setup, .paused, .uncalibrated, .problem: break
             case .starting, .waiting, .live:
                 guard let tracker else { return }
                 if phase != .live { phase = .live }
-                publish(tracker.feed(tilt))
+                publish(tracker.feed(motion.gravity))
             }
         case .connected:
             break
@@ -195,6 +196,7 @@ final class Monitor {
         let rounded = Int(reading.degrees.rounded())
         if rounded != degrees { degrees = rounded }
         if reading.slouching != slouching { slouching = reading.slouching }
+        if reading.lean.direction != direction { direction = reading.lean.direction }
         guard Date.now.timeIntervalSince(lastPublish) >= 1 else { return }
         lastPublish = .now
         held = reading.held

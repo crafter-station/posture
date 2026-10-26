@@ -2,7 +2,7 @@ import CoreMotion
 import Foundation
 
 public enum SensorEvent: Sendable {
-    case tilt(Tilt)
+    case motion(Motion)
     case connected
     case disconnected
 }
@@ -51,8 +51,8 @@ public final class HeadSensor: NSObject, CMHeadphoneMotionManagerDelegate {
         manager.delegate = self
         manager.startDeviceMotionUpdates(to: .main) { motion, _ in
             guard let motion else { return }
-            let tilt = Tilt(motion.gravity)
-            MainActor.assumeIsolated { self.handler?(.tilt(tilt)) }
+            let sample = Motion(gravity: Tilt(motion.gravity), attitude: Quat(motion.attitude.quaternion))
+            MainActor.assumeIsolated { self.handler?(.motion(sample)) }
         }
     }
 

@@ -23,7 +23,7 @@ final class Watch {
         self.options = options
         self.session = session
         let appTracking = !NSRunningApplication.runningApplications(withBundleIdentifier: Self.menuBarApp).isEmpty
-        tracker = Tracker(baseline: baseline, threshold: options.threshold, grace: options.grace, record: !appTracking)
+        tracker = Tracker(baseline: baseline, axes: Store.settings().axes, threshold: options.threshold, grace: options.grace, record: !appTracking)
         if appTracking, !options.json {
             Format.line(Format.dim("The menu bar app is already recording, so this session is view only."))
         }
@@ -36,7 +36,7 @@ final class Watch {
         }
         session.listen { [self] event in
             switch event {
-            case .tilt(let tilt): handle(tracker.feed(tilt))
+            case .motion(let motion): handle(tracker.feed(motion.gravity))
             case .connected: break
             case .disconnected:
                 tracker.interrupt()
@@ -63,11 +63,11 @@ final class Watch {
         guard now.timeIntervalSince(lastRender) >= (options.json ? 1 : 0.1) else { return }
         lastRender = now
         if options.json {
-            emit(["event": "sample", "degrees": reading.degrees.rounded(), "slouching": reading.slouching, "streak": reading.streak.rounded()])
+            emit(["event": "sample", "degrees": reading.degrees.rounded(), "pitch": reading.lean.pitch.rounded(), "roll": reading.lean.roll.rounded(), "direction": reading.lean.direction, "slouching": reading.slouching, "streak": reading.streak.rounded()])
             return
         }
         let state = reading.slouching ? Format.red("slouching \(Format.duration(reading.held))") : Format.green("upright")
-        let angle = String(format: "%3.0f°", reading.degrees)
+        let angle = String(format: "%3.0f° %@", reading.degrees, reading.lean.directional ? reading.lean.direction.padding(toLength: 7, withPad: " ", startingAt: 0) : "")
         let detail = "· score \(tracker.session.score) · streak \(Format.duration(reading.streak)) · \(Format.duration(tracker.session.watched))"
         Format.status("\(Format.meter(reading.degrees, threshold: options.threshold)) \(angle)  \(state)  \(Format.dim(detail))")
     }

@@ -16,6 +16,10 @@ posture bar              # opens it
 
 A seated figure in the menu bar bends with your head in real time and turns orange while you slouch. Click it for today's score, time slouched, nudges, best upright streak, an hour by hour chart, the week, and settings (sensitivity, nudge delay, sound, angle in the menu bar, open at login). When the app is running, `posture watch` is view only so the two never double count.
 
+## Guided setup
+
+On first launch, or from Calibrate in the panel, a setup window walks you through looking down, up, ear to each shoulder and turning each way while a 3D head shows the move and a ring fills as you follow it. Each move teaches Posture an axis in your AirPods' frame, checks that you did the right move, and records your range of motion. Then you sit how you like to work and that becomes the reference. From then on tilt is split into forward, back and sideways: leaning back never counts, sideways only past the threshold plus 5°.
+
 ## Use
 
 ```sh

@@ -47,3 +47,22 @@ public struct Tilt: Codable, Equatable, Sendable {
         ).unit
     }
 }
+
+extension Tilt {
+    public static let zero = Tilt(x: 0, y: 0, z: 0)
+
+    public func dot(_ other: Tilt) -> Double {
+        x * other.x + y * other.y + z * other.z
+    }
+
+    public func cross(_ other: Tilt) -> Tilt {
+        Tilt(x: y * other.z - z * other.y, y: z * other.x - x * other.z, z: x * other.y - y * other.x)
+    }
+
+    public static func + (a: Tilt, b: Tilt) -> Tilt { Tilt(x: a.x + b.x, y: a.y + b.y, z: a.z + b.z) }
+    public static func - (a: Tilt, b: Tilt) -> Tilt { Tilt(x: a.x - b.x, y: a.y - b.y, z: a.z - b.z) }
+    public static func * (a: Tilt, s: Double) -> Tilt { Tilt(x: a.x * s, y: a.y * s, z: a.z * s) }
+
+    public var normalized: Tilt { unit }
+    public var magnitude: Double { length }
+}

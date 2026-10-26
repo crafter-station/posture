@@ -12,5 +12,12 @@ struct PostureBarApp: App {
             Image(nsImage: monitor.icon)
         }
         .menuBarExtraStyle(.window)
+
+        Window("Posture setup", id: "setup") {
+            SetupWindow(monitor: monitor)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+        .defaultLaunchBehavior(monitor.needsSetup ? .presented : .suppressed)
     }
 }
