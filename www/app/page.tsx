@@ -76,7 +76,6 @@ const faqJsonLd = {
 
 const label =
   "font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground";
-const link = "text-foreground underline underline-offset-4";
 
 export default function HomePage() {
   return (
@@ -217,47 +216,6 @@ export default function HomePage() {
           </dl>
         </section>
 
-        <section className="border-b px-4 py-8">
-          <p className={label}>made by</p>
-          <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            posture is built by{" "}
-            <a href={author.url} rel="author" className={link}>
-              {author.name}
-            </a>
-            , Founder of Croma, and released as open source with{" "}
-            <a
-              href="https://crafterstation.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={link}
-            >
-              Crafter Station
-            </a>
-            . More of his work at{" "}
-            <a href={author.url} rel="author" className={link}>
-              cris.fast
-            </a>
-            .
-          </p>
-          <div className="mt-4 flex flex-wrap gap-4 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            {[
-              ["cris.fast", author.url],
-              ["GitHub", author.github],
-              ["LinkedIn", author.linkedin],
-              ["X", author.x],
-            ].map(([name, href]) => (
-              <a
-                key={name}
-                href={href}
-                target="_blank"
-                rel="me noopener noreferrer"
-                className="transition-colors hover:text-foreground"
-              >
-                {name}
-              </a>
-            ))}
-          </div>
-        </section>
       </main>
 
       <footer className="flex items-center justify-between gap-3 px-4 py-4">
@@ -266,7 +224,7 @@ export default function HomePage() {
           rel="author"
           className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 transition-colors hover:text-muted-foreground"
         >
-          by {author.name}
+          Built with 💛 by Cris
         </a>
         <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
           <a

@@ -95,8 +95,4 @@ Builds are ad hoc signed, so macOS asks for motion access again after each rebui
 
 MIT, released with [Crafter Station](https://github.com/crafter-station).
 
-## Author
-
-Built by [Cristian Correa](https://www.cris.fast), Founder of Croma.
-
-[cris.fast](https://www.cris.fast) · [GitHub](https://github.com/camilocbarrera) · [LinkedIn](https://www.linkedin.com/in/cristiancamilocorrea/) · [X](https://x.com/camilocbarrera)
+Built with 💛 by [Cris](https://www.cris.fast)
