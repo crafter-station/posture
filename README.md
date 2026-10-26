@@ -66,6 +66,10 @@ plus `nudge`, `disconnected` and a final `summary` event. While the menu bar app
 
 ## How it works
 
+<img src="docs/airpods-sensor-diagram.png" alt="Apple patent diagram of a wireless earbud showing the accelerometer, microphones, speaker, processor and battery" width="360">
+
+<sub>The accelerometer inside each earbud (113) is what posture reads. Diagram from an Apple patent, via AppleInsider.</sub>
+
 The AirPods fuse their accelerometer and gyroscope into a gravity vector in the earbud's own frame, about 50 times a second. Setup records your upright gravity vector and learns three rotation axes from the guided moves. Every reading is compared to the reference and split into **forward/back** and **left/right**.
 
 - Head drops forward past the threshold (15° by default): slouching
