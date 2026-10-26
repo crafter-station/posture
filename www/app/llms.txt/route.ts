@@ -9,7 +9,7 @@ const content = `# posture
 > CMHeadphoneMotionManager) and nudges you when your head drops for too long.
 > Built by ${author.name} (${author.url}), released with Crafter Station.
 
-Install: \`git clone ${githubUrl} && cd posture && scripts/install.sh\` (macOS 15+, Xcode command line tools, MIT, free)
+Install: \`npm install -g @crafter/posture\` then \`posture bar\` (macOS 15+, Apple Silicon and Intel, MIT, free)
 Works with: AirPods Pro, AirPods 3 or newer, AirPods Max, Beats Fit Pro
 
 ## Features

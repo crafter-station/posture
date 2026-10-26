@@ -1,0 +1,37 @@
+{
+  "name": "@crafter/posture",
+  "version": "0.3.0",
+  "description": "Slouch alerts from your AirPods: a macOS CLI and menu bar app that reads AirPods head tracking and nudges you when your head drops",
+  "license": "MIT",
+  "author": "Cristian Correa <cristian.correa.cs@gmail.com> (https://www.cris.fast)",
+  "homepage": "https://posture.crafter.run",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crafter-station/posture.git"
+  },
+  "bugs": "https://github.com/crafter-station/posture/issues",
+  "keywords": [
+    "posture",
+    "airpods",
+    "slouch",
+    "head-tracking",
+    "macos",
+    "menubar",
+    "cli",
+    "coremotion",
+    "agents"
+  ],
+  "os": ["darwin"],
+  "cpu": ["arm64", "x64"],
+  "bin": {
+    "posture": "dist/bin/posture"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "scripts/npm-build.sh",
+    "prepublishOnly": "scripts/npm-build.sh"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

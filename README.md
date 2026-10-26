@@ -16,18 +16,25 @@ Your AirPods already know when you slouch. **posture** reads their head tracking
 
 ## Requirements
 
-- macOS 15 or newer, Xcode command line tools (Swift 6)
+- macOS 15 or newer (building from source also needs Xcode command line tools)
 - AirPods Pro, AirPods 3 or newer, AirPods Max, or Beats Fit Pro (anything with spatial audio head tracking)
 
 ## Install
+
+```sh
+npm install -g @crafter/posture
+posture bar
+```
+
+Prebuilt for Apple Silicon and Intel, no Xcode needed. `posture bar` opens the menu bar app that ships inside the package. Allow Motion & Fitness access and notifications when macOS asks.
+
+From source instead:
 
 ```sh
 git clone https://github.com/crafter-station/posture
 cd posture
 scripts/install.sh
 ```
-
-This builds `~/Applications/Posture.app`, links the `posture` CLI into `~/.local/bin`, and opens the app. Allow Motion & Fitness access and notifications when macOS asks.
 
 ## Guided setup
 
@@ -89,7 +96,7 @@ Hold it for the grace period (30 seconds by default) and you get a notification.
 Sources/PostureKit   sensor, tilt math, learned axes, tracker, storage
 Sources/posture      CLI
 Sources/PostureBar   menu bar app, setup flow, 3D head, stats panel
-scripts/             bundle.sh builds Posture.app, install.sh does everything
+scripts/             bundle.sh builds Posture.app, install.sh from source, npm-build.sh the npm package
 www/                 landing page at posture.crafter.run (Next.js)
 ```
 

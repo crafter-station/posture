@@ -111,12 +111,12 @@ export default function HomePage() {
             account, nothing leaves your Mac.
           </p>
           <div className="mt-6 max-w-xl space-y-2">
-            <CopyCommand command="git clone https://github.com/crafter-station/posture" />
-            <CopyCommand command="cd posture && scripts/install.sh" />
+            <CopyCommand command="npm install -g @crafter/posture" />
+            <CopyCommand command="posture bar" />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Needs Xcode command line tools. Builds the app into
-            ~/Applications and links the CLI.
+            Prebuilt for Apple Silicon and Intel. The menu bar app ships
+            inside the package.
           </p>
         </section>
 

@@ -55,7 +55,9 @@ enum Commands {
     }
 
     static func open() {
-        let candidates = ["/Applications/Posture.app", NSHomeDirectory() + "/Applications/Posture.app"]
+        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
+        let bundled = executable.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Posture.app").path
+        let candidates = ["/Applications/Posture.app", NSHomeDirectory() + "/Applications/Posture.app", bundled]
         guard let app = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
             fail(NotInstalled())
         }
@@ -95,7 +97,7 @@ enum Commands {
 }
 
 struct NotInstalled: Error, CustomStringConvertible {
-    var description: String { "Posture.app is not installed. Run `scripts/bundle.sh` in the posture repo." }
+    var description: String { "Posture.app was not found. Reinstall with `npm install -g @crafter/posture`." }
 }
 
 struct NotCalibrated: Error, CustomStringConvertible {
@@ -113,7 +115,7 @@ enum Doctor {
         session.collect(for: 3) { samples in
             let report: [(String, String, Bool)] = [
                 ("motion headphones", sensor.isAvailable ? "supported" : "none found", sensor.isAvailable),
-                ("motion access", access, access == "granted"),
+                ("motion access", samples.isEmpty ? access : "granted", !samples.isEmpty || access == "granted"),
                 ("sensor data", samples.isEmpty ? "silent" : "\(samples.count) samples in 3s", !samples.isEmpty),
                 ("calibrated", settings.baseline != nil ? "yes" : "no", settings.baseline != nil),
                 ("direction", settings.axes != nil ? "learned" : "not yet, run setup in the menu bar app", settings.axes != nil),
