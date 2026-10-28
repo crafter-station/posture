@@ -55,7 +55,7 @@ enum Commands {
     }
 
     static func open() {
-        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
+        let executable = (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0])).resolvingSymlinksInPath()
         let bundled = executable.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Posture.app").path
         let candidates = ["/Applications/Posture.app", NSHomeDirectory() + "/Applications/Posture.app", bundled]
         guard let app = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
