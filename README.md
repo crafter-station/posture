@@ -57,7 +57,7 @@ Run it again any time from **Calibrate** in the menu bar panel, or choose **Only
 posture                  # watch live in the terminal
 posture now              # one reading, exit 0 upright, 1 slouching
 posture stats --days 7   # score, slouch time, streak, nudges, today by hour
-posture config --threshold 12 --grace 45
+posture config --threshold 12 --grace 45 --repeat 120
 posture calibrate        # reset your upright position from the terminal
 posture doctor           # AirPods, permission, sensor, calibration, directions
 posture bar              # open the menu bar app
@@ -84,7 +84,7 @@ The AirPods fuse their accelerometer and gyroscope into a gravity vector in the 
 - Leans back: never counts
 - Turning to look at another screen: ignored, gravity does not change when you turn
 
-Hold it for the grace period (30 seconds by default) and you get a notification. Nudges repeat at most every 90 seconds.
+Hold it for the grace period (30 seconds by default) and you get a notification. While you stay slouched, the nudge repeats every 90 seconds by default. Change it with **Remind every** in the panel or `--repeat <sec>`, or set it to **Once** (`--repeat 0`) to be nudged only once each time you slouch.
 
 **What it can't see.** The sensor measures rotation, not position. Pushing your chin forward while keeping your eyes level, or slumping your back with your head level, are not detected. In practice most slouching comes with a head drop. If you reseat your AirPods and readings drift, recalibrate.
 

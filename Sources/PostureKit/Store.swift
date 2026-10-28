@@ -4,6 +4,7 @@ public struct Settings: Codable, Sendable {
     public var baseline: Tilt?
     public var threshold = 15.0
     public var grace = 30.0
+    public var repeatEvery = 90.0
     public var sound = true
     public var showAngle = false
     public var axes: Axes?
@@ -16,6 +17,7 @@ public struct Settings: Codable, Sendable {
         baseline = try c.decodeIfPresent(Tilt.self, forKey: .baseline)
         threshold = try c.decodeIfPresent(Double.self, forKey: .threshold) ?? threshold
         grace = try c.decodeIfPresent(Double.self, forKey: .grace) ?? grace
+        repeatEvery = try c.decodeIfPresent(Double.self, forKey: .repeatEvery) ?? repeatEvery
         sound = try c.decodeIfPresent(Bool.self, forKey: .sound) ?? sound
         showAngle = try c.decodeIfPresent(Bool.self, forKey: .showAngle) ?? showAngle
         axes = try c.decodeIfPresent(Axes.self, forKey: .axes)

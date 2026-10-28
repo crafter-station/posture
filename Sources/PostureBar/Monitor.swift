@@ -46,7 +46,7 @@ final class Monitor {
 
     init() {
         Notifier.shared.prepare()
-        tracker = settings.baseline.map { Tracker(baseline: $0, axes: settings.axes, threshold: settings.threshold, grace: settings.grace) }
+        tracker = settings.baseline.map { Tracker(baseline: $0, axes: settings.axes, threshold: settings.threshold, grace: settings.grace, repeatEvery: settings.repeatEvery) }
         today = tracker?.day ?? Store.history()[Store.dayKey()] ?? Day()
         refreshWeek()
         listen()
@@ -117,7 +117,7 @@ final class Monitor {
             if let mobility { $0.mobility = mobility }
         }
         tracker?.flush()
-        tracker = Tracker(baseline: baseline, axes: settings.axes, threshold: settings.threshold, grace: settings.grace)
+        tracker = Tracker(baseline: baseline, axes: settings.axes, threshold: settings.threshold, grace: settings.grace, repeatEvery: settings.repeatEvery)
         note = "Calibrated. That's your upright."
     }
 
@@ -137,6 +137,7 @@ final class Monitor {
         Store.save(settings)
         tracker?.threshold = settings.threshold
         tracker?.grace = settings.grace
+        tracker?.repeatEvery = settings.repeatEvery
     }
 
     func setOpensAtLogin(_ enabled: Bool) {

@@ -5,6 +5,7 @@ import PostureKit
 struct WatchOptions {
     var threshold: Double
     var grace: Double
+    var repeatEvery: Double
     var json = false
     var quiet = false
 }
@@ -23,7 +24,7 @@ final class Watch {
         self.options = options
         self.session = session
         let appTracking = !NSRunningApplication.runningApplications(withBundleIdentifier: Self.menuBarApp).isEmpty
-        tracker = Tracker(baseline: baseline, axes: Store.settings().axes, threshold: options.threshold, grace: options.grace, record: !appTracking)
+        tracker = Tracker(baseline: baseline, axes: Store.settings().axes, threshold: options.threshold, grace: options.grace, repeatEvery: options.repeatEvery, record: !appTracking)
         if appTracking, !options.json {
             Format.line(Format.dim("The menu bar app is already recording, so this session is view only."))
         }
@@ -32,7 +33,7 @@ final class Watch {
     func start() {
         trapExit()
         if !options.json {
-            Format.line(Format.dim("Watching your posture. Threshold \(Int(options.threshold))°, nudge after \(Format.duration(options.grace)). Ctrl-C to stop."))
+            Format.line(Format.dim("Watching your posture. Threshold \(Int(options.threshold))°, nudge after \(Format.duration(options.grace)), \(options.repeatEvery > 0 ? "repeat every \(Format.duration(options.repeatEvery))" : "once"). Ctrl-C to stop."))
         }
         session.listen { [self] event in
             switch event {
