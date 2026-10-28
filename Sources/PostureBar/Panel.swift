@@ -108,6 +108,10 @@ struct Panel: View {
             LabeledSlider(title: "Slouch at", value: "\(Int(monitor.settings.threshold))°", amount: binding(\.threshold), range: 8...30, step: 1)
             LabeledSlider(title: "Nudge after", value: Duration.text(monitor.settings.grace), amount: binding(\.grace), range: 10...120, step: 5)
             Toggle("Sound", isOn: binding(\.sound))
+            SoundPicker(title: "Nudge sound", selection: soundBinding(\.nudgeSound))
+                .disabled(!monitor.settings.sound)
+            SoundPicker(title: "Recovered sound", selection: soundBinding(\.recoverSound))
+                .disabled(!monitor.settings.sound)
             Toggle("Angle in menu bar", isOn: binding(\.showAngle))
             Toggle("Open at login", isOn: Binding(get: { monitor.opensAtLogin }, set: { monitor.setOpensAtLogin($0) }))
         }
@@ -158,6 +162,25 @@ struct Panel: View {
 
     private func binding<Value>(_ keyPath: WritableKeyPath<PostureKit.Settings, Value>) -> Binding<Value> {
         Binding(get: { monitor.settings[keyPath: keyPath] }, set: { value in monitor.update { $0[keyPath: keyPath] = value } })
+    }
+
+    private func soundBinding(_ keyPath: WritableKeyPath<PostureKit.Settings, String>) -> Binding<String> {
+        Binding(get: { monitor.settings[keyPath: keyPath] }, set: { value in
+            monitor.update { $0[keyPath: keyPath] = value }
+            Notifier.shared.play(value)
+        })
+    }
+}
+
+private struct SoundPicker: View {
+    let title: String
+    @Binding var selection: String
+
+    var body: some View {
+        Picker(title, selection: $selection) {
+            Text("None").tag("")
+            ForEach(Sounds.system, id: \.self) { Text($0).tag($0) }
+        }
     }
 }
 

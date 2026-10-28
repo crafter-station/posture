@@ -15,6 +15,9 @@ let usage = """
 options
   --threshold <deg>   tilt that counts as slouching (default 15)
   --grace <sec>       how long before a nudge (default 30)
+  --nudge-sound <name>    sound when you slouch (default Glass)
+  --recover-sound <name>  sound when you sit back up (default Submarine)
+                          one of: \(Sounds.system.joined(separator: ", ")) or none
   --quiet             notifications without sound
   --json              machine-readable output (JSONL for watch)
 """
@@ -29,7 +32,7 @@ struct Arguments {
         while let arg = iterator.next() {
             if arg.hasPrefix("--") {
                 let name = String(arg.dropFirst(2))
-                if ["threshold", "grace", "days"].contains(name) { values[name] = iterator.next() } else { flags.insert(name) }
+                if ["threshold", "grace", "days", "nudge-sound", "recover-sound"].contains(name) { values[name] = iterator.next() } else { flags.insert(name) }
             } else if arg == "-h" {
                 flags.insert("help")
             } else if command == nil {
@@ -40,6 +43,12 @@ struct Arguments {
 
     func number(_ name: String) -> Double? {
         values[name].flatMap(Double.init)
+    }
+
+    func sound(_ name: String) -> String? {
+        guard let raw = values[name] else { return nil }
+        guard let sound = Sounds.match(raw) else { fail(UnknownSound(name: raw)) }
+        return sound
     }
 }
 
@@ -61,7 +70,9 @@ MainActor.assumeIsolated {
             threshold: args.number("threshold") ?? settings.threshold,
             grace: args.number("grace") ?? settings.grace,
             json: json,
-            quiet: args.flags.contains("quiet")
+            quiet: args.flags.contains("quiet"),
+            nudgeSound: args.sound("nudge-sound") ?? settings.nudgeSound,
+            recoverSound: args.sound("recover-sound") ?? settings.recoverSound
         )
         if let baseline = settings.baseline {
             Watch(baseline: baseline, options: options).start()
@@ -81,7 +92,7 @@ MainActor.assumeIsolated {
     case "doctor":
         Doctor.run(json: json)
     case "config":
-        Commands.config(threshold: args.number("threshold"), grace: args.number("grace"), json: json)
+        Commands.config(threshold: args.number("threshold"), grace: args.number("grace"), nudgeSound: args.sound("nudge-sound"), recoverSound: args.sound("recover-sound"), json: json)
     case let other?:
         FileHandle.standardError.write(Data("Unknown command \(other)\n\n\(usage)\n".utf8))
         exit(2)

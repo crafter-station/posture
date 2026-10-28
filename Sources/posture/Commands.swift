@@ -71,16 +71,20 @@ enum Commands {
         score >= 80 ? Format.green("\(score)") : score >= 60 ? Format.yellow("\(score)") : Format.red("\(score)")
     }
 
-    static func config(threshold: Double?, grace: Double?, json: Bool) {
+    static func config(threshold: Double?, grace: Double?, nudgeSound: String?, recoverSound: String?, json: Bool) {
         var settings = Store.settings()
         if let threshold { settings.threshold = threshold }
         if let grace { settings.grace = grace }
-        if threshold != nil || grace != nil { Store.save(settings) }
+        if let nudgeSound { settings.nudgeSound = nudgeSound }
+        if let recoverSound { settings.recoverSound = recoverSound }
+        if threshold != nil || grace != nil || nudgeSound != nil || recoverSound != nil { Store.save(settings) }
         if json {
-            Format.line(Format.json(["threshold": settings.threshold, "grace": settings.grace, "calibrated": settings.baseline != nil, "path": Store.directory.path]))
+            Format.line(Format.json(["threshold": settings.threshold, "grace": settings.grace, "nudgeSound": soundName(settings.nudgeSound), "recoverSound": soundName(settings.recoverSound), "calibrated": settings.baseline != nil, "path": Store.directory.path]))
         } else {
             Format.line("threshold   \(Int(settings.threshold))°")
             Format.line("grace       \(Format.duration(settings.grace))")
+            Format.line("on slouch   \(soundName(settings.nudgeSound))")
+            Format.line("on recover  \(soundName(settings.recoverSound))")
             Format.line("calibrated  \(settings.baseline != nil ? "yes" : "no")")
             Format.line("direction   \(settings.axes != nil ? "learned" : "not learned")")
             if let m = settings.mobility {
@@ -94,6 +98,15 @@ enum Commands {
     private static func pad(_ text: String, _ width: Int = 11) -> String {
         text.padding(toLength: max(width, text.count + 1), withPad: " ", startingAt: 0)
     }
+
+    private static func soundName(_ sound: String) -> String {
+        sound.isEmpty ? "none" : sound
+    }
+}
+
+struct UnknownSound: Error, CustomStringConvertible {
+    let name: String
+    var description: String { "Unknown sound \"\(name)\". Use one of: \(Sounds.system.joined(separator: ", ")) or none." }
 }
 
 struct NotInstalled: Error, CustomStringConvertible {

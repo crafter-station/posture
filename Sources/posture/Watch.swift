@@ -7,6 +7,8 @@ struct WatchOptions {
     var grace: Double
     var json = false
     var quiet = false
+    var nudgeSound = "Glass"
+    var recoverSound = "Submarine"
 }
 
 @MainActor
@@ -48,10 +50,10 @@ final class Watch {
     private func handle(_ reading: Tracker.Reading) {
         switch reading.event {
         case .nudge(let seconds):
-            Nudge.slouching(for: seconds, quiet: options.quiet)
+            Nudge.slouching(for: seconds, sound: options.quiet ? nil : options.nudgeSound)
             if options.json { emit(["event": "nudge", "degrees": reading.degrees.rounded(), "seconds": seconds.rounded()]) }
         case .recovered:
-            Nudge.recovered(quiet: options.quiet)
+            Nudge.recovered(sound: options.quiet ? nil : options.recoverSound)
         case nil:
             break
         }
