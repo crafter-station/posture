@@ -6,6 +6,8 @@ public struct Settings: Codable, Sendable {
     public var grace = 30.0
     public var sound = true
     public var showAngle = false
+    public var nudgeSound = "Glass"
+    public var recoverSound = "Submarine"
     public var axes: Axes?
     public var mobility: Mobility?
 
@@ -18,8 +20,19 @@ public struct Settings: Codable, Sendable {
         grace = try c.decodeIfPresent(Double.self, forKey: .grace) ?? grace
         sound = try c.decodeIfPresent(Bool.self, forKey: .sound) ?? sound
         showAngle = try c.decodeIfPresent(Bool.self, forKey: .showAngle) ?? showAngle
+        nudgeSound = try c.decodeIfPresent(String.self, forKey: .nudgeSound) ?? nudgeSound
+        recoverSound = try c.decodeIfPresent(String.self, forKey: .recoverSound) ?? recoverSound
         axes = try c.decodeIfPresent(Axes.self, forKey: .axes)
         mobility = try c.decodeIfPresent(Mobility.self, forKey: .mobility)
+    }
+}
+
+public enum Sounds {
+    public static let system = ["Basso", "Blow", "Bottle", "Frog", "Funk", "Glass", "Hero", "Morse", "Ping", "Pop", "Purr", "Sosumi", "Submarine", "Tink"]
+
+    public static func match(_ name: String) -> String? {
+        if name.caseInsensitiveCompare("none") == .orderedSame { return "" }
+        return system.first { $0.caseInsensitiveCompare(name) == .orderedSame }
     }
 }
 

@@ -58,6 +58,7 @@ posture                  # watch live in the terminal
 posture now              # one reading, exit 0 upright, 1 slouching
 posture stats --days 7   # score, slouch time, streak, nudges, today by hour
 posture config --threshold 12 --grace 45
+posture config --nudge-sound Glass --recover-sound Pop
 posture calibrate        # reset your upright position from the terminal
 posture doctor           # AirPods, permission, sensor, calibration, directions
 posture bar              # open the menu bar app
@@ -84,7 +85,7 @@ The AirPods fuse their accelerometer and gyroscope into a gravity vector in the 
 - Leans back: never counts
 - Turning to look at another screen: ignored, gravity does not change when you turn
 
-Hold it for the grace period (30 seconds by default) and you get a notification. Nudges repeat at most every 90 seconds.
+Hold it for the grace period (30 seconds by default) and you get a notification. Nudges repeat at most every 90 seconds. It plays Glass when you are nudged and Submarine when you sit back up. Pick other macOS sounds, or none, under **Nudge sound** and **Recovered sound** in the panel, or with `--nudge-sound` and `--recover-sound`.
 
 **What it can't see.** The sensor measures rotation, not position. Pushing your chin forward while keeping your eyes level, or slumping your back with your head level, are not detected. In practice most slouching comes with a head drop. If you reseat your AirPods and readings drift, recalibrate.
 

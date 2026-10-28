@@ -189,8 +189,8 @@ final class Monitor {
 
     private func publish(_ reading: Tracker.Reading) {
         switch reading.event {
-        case .nudge(let seconds): Notifier.shared.nudge(after: seconds, sound: settings.sound)
-        case .recovered: Notifier.shared.recovered(sound: settings.sound)
+        case .nudge(let seconds): Notifier.shared.nudge(after: seconds, sound: settings.sound ? settings.nudgeSound : nil)
+        case .recovered: Notifier.shared.recovered(sound: settings.sound ? settings.recoverSound : nil)
         case nil: break
         }
         let rounded = Int(reading.degrees.rounded())
