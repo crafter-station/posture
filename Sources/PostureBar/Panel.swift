@@ -56,10 +56,10 @@ struct Panel: View {
         if !rows.isEmpty {
             Section(title: "Today", caption: "\(Duration.text(monitor.today.watched)) tracked") {
                 Chart(rows, id: \.hour) { row in
-                    BarMark(x: .value("Hour", row.hour), y: .value("Track", 100), width: .fixed(8))
+                    BarMark(x: .value("Hour", row.hour), y: .value("Track", 100), width: .fixed(8), stacking: .unstacked)
                         .foregroundStyle(.primary.opacity(0.06))
                         .clipShape(Capsule())
-                    BarMark(x: .value("Hour", row.hour), y: .value("Upright", row.slot.upright * 100), width: .fixed(8))
+                    BarMark(x: .value("Hour", row.hour), y: .value("Upright", row.slot.upright * 100), width: .fixed(8), stacking: .unstacked)
                         .foregroundStyle(row.slot.upright < 0.7 ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary.opacity(0.75)))
                         .clipShape(Capsule())
                 }
@@ -81,10 +81,10 @@ struct Panel: View {
     private var week: some View {
         Section(title: "This week", caption: weekAverage) {
             Chart(monitor.week) { row in
-                BarMark(x: .value("Day", row.key), y: .value("Track", 100), width: .fixed(14))
+                BarMark(x: .value("Day", row.key), y: .value("Track", 100), width: .fixed(14), stacking: .unstacked)
                     .foregroundStyle(.primary.opacity(0.06))
                     .clipShape(Capsule())
-                BarMark(x: .value("Day", row.key), y: .value("Score", row.day.watched > 0 ? row.day.score : 0), width: .fixed(14))
+                BarMark(x: .value("Day", row.key), y: .value("Score", row.day.watched > 0 ? row.day.score : 0), width: .fixed(14), stacking: .unstacked)
                     .foregroundStyle(row.isToday ? AnyShapeStyle(.primary) : AnyShapeStyle(.primary.opacity(0.35)))
                     .clipShape(Capsule())
             }
