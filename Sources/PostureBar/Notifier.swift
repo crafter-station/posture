@@ -15,8 +15,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         let content = UNMutableNotificationContent()
         content.title = "Sit up straight"
         content.body = "You've been slouching for \(Duration.text(seconds)). Shoulders back, chin level."
-        content.sound = sound ? .default : nil
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "posture.nudge", content: content, trigger: nil))
+        if sound { NSSound(named: "Funk")?.play() }
     }
 
     func recovered(sound: Bool) {
