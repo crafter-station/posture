@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")/.."
 swift build -c release --arch arm64 --arch x86_64
-products=.build/apple/Products/Release
+products=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 rm -rf dist
 mkdir -p dist/bin dist/Posture.app/Contents/MacOS
 cp "$products/posture" dist/bin/posture
