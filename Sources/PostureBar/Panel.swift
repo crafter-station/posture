@@ -107,6 +107,7 @@ struct Panel: View {
         VStack(alignment: .leading, spacing: 12) {
             LabeledSlider(title: "Slouch at", value: "\(Int(monitor.settings.threshold))°", amount: binding(\.threshold), range: 8...30, step: 1)
             LabeledSlider(title: "Nudge after", value: Duration.text(monitor.settings.grace), amount: binding(\.grace), range: 10...120, step: 5)
+            LabeledSlider(title: "Remind every", value: monitor.settings.repeatEvery > 0 ? Duration.text(monitor.settings.repeatEvery) : "Once", amount: binding(\.repeatEvery), range: 0...120, step: 5)
             Toggle("Sound", isOn: binding(\.sound))
             Toggle("Angle in menu bar", isOn: binding(\.showAngle))
             Toggle("Open at login", isOn: Binding(get: { monitor.opensAtLogin }, set: { monitor.setOpensAtLogin($0) }))

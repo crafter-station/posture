@@ -71,16 +71,18 @@ enum Commands {
         score >= 80 ? Format.green("\(score)") : score >= 60 ? Format.yellow("\(score)") : Format.red("\(score)")
     }
 
-    static func config(threshold: Double?, grace: Double?, json: Bool) {
+    static func config(threshold: Double?, grace: Double?, repeatEvery: Double?, json: Bool) {
         var settings = Store.settings()
         if let threshold { settings.threshold = threshold }
         if let grace { settings.grace = grace }
-        if threshold != nil || grace != nil { Store.save(settings) }
+        if let repeatEvery { settings.repeatEvery = repeatEvery }
+        if threshold != nil || grace != nil || repeatEvery != nil { Store.save(settings) }
         if json {
-            Format.line(Format.json(["threshold": settings.threshold, "grace": settings.grace, "calibrated": settings.baseline != nil, "path": Store.directory.path]))
+            Format.line(Format.json(["threshold": settings.threshold, "grace": settings.grace, "repeat": settings.repeatEvery, "calibrated": settings.baseline != nil, "path": Store.directory.path]))
         } else {
             Format.line("threshold   \(Int(settings.threshold))°")
             Format.line("grace       \(Format.duration(settings.grace))")
+            Format.line("repeat      \(settings.repeatEvery > 0 ? Format.duration(settings.repeatEvery) : "once")")
             Format.line("calibrated  \(settings.baseline != nil ? "yes" : "no")")
             Format.line("direction   \(settings.axes != nil ? "learned" : "not learned")")
             if let m = settings.mobility {

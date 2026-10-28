@@ -15,6 +15,7 @@ let usage = """
 options
   --threshold <deg>   tilt that counts as slouching (default 15)
   --grace <sec>       how long before a nudge (default 30)
+  --repeat <sec>      how often a nudge repeats while slouching, 0 = once (default 90)
   --quiet             notifications without sound
   --json              machine-readable output (JSONL for watch)
 """
@@ -29,7 +30,7 @@ struct Arguments {
         while let arg = iterator.next() {
             if arg.hasPrefix("--") {
                 let name = String(arg.dropFirst(2))
-                if ["threshold", "grace", "days"].contains(name) { values[name] = iterator.next() } else { flags.insert(name) }
+                if ["threshold", "grace", "repeat", "days"].contains(name) { values[name] = iterator.next() } else { flags.insert(name) }
             } else if arg == "-h" {
                 flags.insert("help")
             } else if command == nil {
@@ -60,6 +61,7 @@ MainActor.assumeIsolated {
         let options = WatchOptions(
             threshold: args.number("threshold") ?? settings.threshold,
             grace: args.number("grace") ?? settings.grace,
+            repeatEvery: args.number("repeat") ?? settings.repeatEvery,
             json: json,
             quiet: args.flags.contains("quiet")
         )
@@ -81,7 +83,7 @@ MainActor.assumeIsolated {
     case "doctor":
         Doctor.run(json: json)
     case "config":
-        Commands.config(threshold: args.number("threshold"), grace: args.number("grace"), json: json)
+        Commands.config(threshold: args.number("threshold"), grace: args.number("grace"), repeatEvery: args.number("repeat"), json: json)
     case let other?:
         FileHandle.standardError.write(Data("Unknown command \(other)\n\n\(usage)\n".utf8))
         exit(2)

@@ -25,7 +25,7 @@ Works with: AirPods Pro, AirPods 3 or newer, AirPods Max, Beats Fit Pro
 - \`posture\`: watch live in the terminal
 - \`posture now\`: one reading, exit 0 upright, 1 slouching
 - \`posture stats [--days 7]\`: per day watched, slouched, streak, nudges, score, by hour
-- \`posture config [--threshold deg] [--grace sec]\`: settings and range of motion
+- \`posture config [--threshold deg] [--grace sec] [--repeat sec]\`: settings and range of motion
 - \`posture calibrate\`: reset the upright reference
 - \`posture doctor\`: AirPods, permission, sensor, calibration, learned directions
 - All commands take \`--json\`; \`posture watch --json\` streams JSONL events: sample (degrees, pitch, roll, direction, slouching, streak), nudge, disconnected, summary

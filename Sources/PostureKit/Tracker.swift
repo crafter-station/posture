@@ -20,6 +20,7 @@ public final class Tracker {
     public var axes: Axes?
     public var threshold: Double
     public var grace: Double
+    public var repeatEvery: Double
     public private(set) var day: Day
     public private(set) var session = Day()
 
@@ -32,11 +33,12 @@ public final class Tracker {
     private var lastNudge: Date?
     private var lastFlush = Date.now
 
-    public init(baseline: Tilt, axes: Axes?, threshold: Double, grace: Double, record: Bool = true) {
+    public init(baseline: Tilt, axes: Axes?, threshold: Double, grace: Double, repeatEvery: Double, record: Bool = true) {
         self.baseline = baseline
         self.axes = axes
         self.threshold = threshold
         self.grace = grace
+        self.repeatEvery = repeatEvery
         self.record = record
         dayKey = Store.dayKey()
         day = Store.history()[dayKey] ?? Day()
@@ -65,7 +67,7 @@ public final class Tracker {
             held = now.timeIntervalSince(start)
             if held >= grace {
                 streakStart = now
-                let due = lastNudge.map { now.timeIntervalSince($0) >= max(60, grace * 3) } ?? true
+                let due = lastNudge.map { repeatEvery > 0 && now.timeIntervalSince($0) >= repeatEvery } ?? true
                 if due {
                     lastNudge = now
                     day.alerts += 1
